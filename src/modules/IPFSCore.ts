@@ -35,11 +35,12 @@ export default class IPFSCore {
 		this.instance = createNode({ url: IPFS_API });
 	}
 
-	async add(content: string): Promise<CID> {
+	async add(buff: Buffer): Promise<CID> {
 		await this.loaded;
 
-		const { cid } = await this.instance.add(this.encoder.encode(content), {
+		const { cid } = await this.instance.add(buff, {
 			pin: false,
+			cidVersion: 1,
 		});
 		return cid;
 	}

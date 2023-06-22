@@ -1,7 +1,8 @@
 import { type NextFunction, type Request, type Response } from "express";
 
+import { prisma } from "../db/client";
 import { ipfsCore } from "../modules/IPFSCore";
-import { parseCID } from "../utils";
+import { parseCID, validateBase64Content } from "../utils";
 
 async function upload(
 	request: Request,
@@ -9,7 +10,16 @@ async function upload(
 	next: NextFunction
 ): Promise<Response | undefined> {
 	try {
-		const cid = await ipfsCore.add(request.body.content);
+		const content = request.body.content as string;
+		const metadata = validateBase64Content(content);
+
+		const cid = await ipfsCore.add(metadata.buff);
+		await prisma.content.create({
+			data: {
+				cid: cid.toString(),
+				metadata,
+			},
+		});
 
 		return response.send({
 			success: true,
