@@ -43,3 +43,10 @@ export function validateBase64Content(metadata: Base64MetadataAttributes): void 
 export function generateGatewayURL(cid: CID | string): string {
 	return `${process.env.IPFS_GATEWAY as string}/ipfs/${cid.toString()}`;
 }
+
+export function cidArrayDifference(arrayOne: CID[], arrayTwo: CID[]): CID[] {
+	const arrayOfStringsTwo = arrayTwo.map((cid) => cid.toString());
+	const diff = arrayOne.filter((v) => !arrayOfStringsTwo.includes(v.toString()));
+
+	return diff;
+}
