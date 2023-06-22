@@ -40,32 +40,14 @@ export default class IPFSCore {
 		this.instance = createNode({ url: process.env.IPFS_API });
 	}
 
-		this.instance = createNode({ url: IPFS_API });
-	}
-
-	async add(buff: Buffer): Promise<CID> {
+	async add(buff: Buffer, pin: boolean = false): Promise<CID> {
 		await this.loaded;
 
 		const { cid } = await this.instance.add(buff, {
-			pin: false,
+			pin,
 			cidVersion: 1,
 		});
 		return cid;
-	}
-
-	async get(cid: CID): Promise<string> {
-		await this.loaded;
-
-		const payload: string[] = [];
-		for await (const chunk of this.instance.cat(cid)) {
-			payload.push(
-				this.decoder.decode(chunk, {
-					stream: true,
-				})
-			);
-		}
-
-		return payload.join();
 	}
 
 	async pin(cid: CID[]): Promise<CID[]> {

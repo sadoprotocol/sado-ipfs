@@ -2,6 +2,7 @@ import { CID } from "kubo-rpc-client";
 
 import { ACCEPTED_MIME_TYPES, MAXIMUM_FILE_SIZE } from "../config";
 import ERRORS from "../errors";
+import { type Base64MetadataAttributes, type MIME_TYPE } from "./types";
 
 export function parseCID(str: string): CID {
 	try {
@@ -11,24 +12,25 @@ export function parseCID(str: string): CID {
 	}
 }
 
-export function getBase64Metadata(content: string): Record<string, any> {
+export function getBase64Metadata(content: string): Base64MetadataAttributes {
 	if (!content.startsWith("data:") || !content.includes("base64,")) {
 		throw new Error(ERRORS.INVALID_BASE64_CONTENT);
 	}
 
-	const [metadata, data] = content.split("base64,");
-	const mimetype = metadata.substring(metadata.indexOf(":") + 1, metadata.lastIndexOf(";"));
+	const [fileData, data] = content.split("base64,");
 	const buff = Buffer.from(data, "base64");
-
-	return {
+	const metadata = {
 		buff,
 		byteSize: buff.byteLength,
-		mimetype,
+		mimetype: fileData.substring(fileData.indexOf(":") + 1, fileData.lastIndexOf(";")) as MIME_TYPE,
 	};
+
+	validateBase64Content(metadata);
+
+	return metadata;
 }
 
-export function validateBase64Content(content: string): Record<string, any> {
-	const metadata = getBase64Metadata(content);
+export function validateBase64Content(metadata: Base64MetadataAttributes): void {
 	if (metadata.byteSize > MAXIMUM_FILE_SIZE) {
 		throw new Error(ERRORS.FILE_SIZE_OVER_LIMIT);
 	}
@@ -36,6 +38,8 @@ export function validateBase64Content(content: string): Record<string, any> {
 	if (!ACCEPTED_MIME_TYPES.includes(metadata.mimetype)) {
 		throw new Error(ERRORS.UNSUPPORTED_FILE);
 	}
+}
 
-	return metadata;
+export function generateGatewayURL(cid: CID | string): string {
+	return `${process.env.IPFS_GATEWAY as string}/ipfs/${cid.toString()}`;
 }

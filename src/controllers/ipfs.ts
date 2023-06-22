@@ -2,46 +2,33 @@ import { type NextFunction, type Request, type Response } from "express";
 
 import { prisma } from "../db/client";
 import { ipfsCore } from "../modules/IPFSCore";
-import { parseCID, validateBase64Content } from "../utils";
+import { generateGatewayURL, getBase64Metadata, parseCID } from "../utils";
 
-async function upload(
+async function uploadBase64(
 	request: Request,
 	response: Response,
 	next: NextFunction
 ): Promise<Response | undefined> {
 	try {
 		const content = request.body.content as string;
-		const metadata = validateBase64Content(content);
+		const pin = request.body.pin as boolean;
+		const { buff, ...metadata } = getBase64Metadata(content);
 
-		const cid = await ipfsCore.add(metadata.buff);
+		const cid = await ipfsCore.add(buff);
 		await prisma.content.create({
 			data: {
 				cid: cid.toString(),
 				metadata,
+				pinned: pin,
 			},
 		});
 
 		return response.send({
 			success: true,
-			data: { cid: cid.toString() },
-		});
-	} catch (error) {
-		next(error);
-	}
-}
-
-async function retrieve(
-	request: Request,
-	response: Response,
-	next: NextFunction
-): Promise<Response | undefined> {
-	try {
-		const cid = parseCID(request.params.id);
-		const content = await ipfsCore.get(cid);
-
-		return response.send({
-			success: true,
-			data: { content },
+			data: {
+				cid: cid.toString(),
+				url: generateGatewayURL(cid),
+			},
 		});
 	} catch (error) {
 		next(error);
@@ -86,4 +73,4 @@ async function unpin(
 	}
 }
 
-export { pin, retrieve, unpin, upload };
+export { pin, unpin, uploadBase64 };
