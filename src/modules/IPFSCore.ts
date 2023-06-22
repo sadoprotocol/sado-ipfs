@@ -53,27 +53,27 @@ export default class IPFSCore {
 	async pin(cid: CID[]): Promise<CID[]> {
 		await this.loaded;
 
+		const pinned: CID[] = [];
 		const cids: CID[] = !Array.isArray(cid) ? [cid] : cid;
 		const input = cids.map((cid) => {
 			return { cid };
 		});
-		const pinnedCIDs: CID[] = [];
 
 		for await (const pinnedCID of this.instance.pin.addAll(input)) {
-			pinnedCIDs.push(pinnedCID);
+			pinned.push(pinnedCID);
 		}
 
-		return pinnedCIDs;
+		return pinned;
 	}
 
 	async unpin(cid: CID[]): Promise<CID[]> {
 		await this.loaded;
 
+		const unpinned: CID[] = [];
 		const cids: CID[] = !Array.isArray(cid) ? [cid] : cid;
 		const input = cids.map((cid) => {
 			return { cid };
 		});
-		const unpinned: CID[] = [];
 
 		// unpinning a CID that's not already pinned throws error
 		try {
@@ -83,6 +83,18 @@ export default class IPFSCore {
 		} catch (error) {}
 
 		return unpinned;
+	}
+
+	async isPinned(cid: CID): Promise<boolean> {
+		try {
+			for await (const { cid: _cid } of this.instance.pin.ls({ paths: cid, type: "recursive" })) {
+				if (_cid.equals(cid)) return true;
+			}
+		} catch (error) {
+			return false;
+		}
+
+		return false;
 	}
 }
 
