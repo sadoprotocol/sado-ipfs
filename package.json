@@ -3,6 +3,9 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
+	"prisma": {
+		"schema": "src/db/schema.prisma"
+	},
 	"scripts": {
 		"prestart": "tsc",
 		"start": "npx tsx src/server.ts",
