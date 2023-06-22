@@ -15,7 +15,8 @@
 		"simple-import-sort/exports": "error",
 		"no-return-await": "error",
 		"@typescript-eslint/no-misused-promises": "off",
-		"@typescript-eslint/strict-boolean-expressions": "off"
+		"@typescript-eslint/strict-boolean-expressions": "off",
+		"@typescript-eslint/restrict-template-expressions": "off"
 	},
 	"overrides": [
 		{
