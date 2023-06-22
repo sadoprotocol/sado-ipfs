@@ -1,0 +1,36 @@
+name: Delivery by releases
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy using ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /home/ipfs/sado-ipfs
+            git checkout main
+            git pull
+            npm install
+            sudo systemctl restart ipfs-api.service
+
+      - name: Notify Slack
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ENDPOINT }}
+        with:
+          payload: |
+            {
+              "title": "Sado IPFS New Release: ${{ github.event.release.name }}",
+              "content": "Release Version: ${{ github.event.release.name }}\nRelease Notes: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.event.release.tag_name }}"
+            }

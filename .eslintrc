@@ -1,0 +1,27 @@
+{
+	"env": {
+		"browser": true,
+		"es2022": true
+	},
+	"extends": ["eslint:recommended", "standard-with-typescript", "prettier"],
+	"plugins": ["simple-import-sort"],
+	"parserOptions": {
+		"ecmaVersion": "latest",
+		"sourceType": "module",
+		"project": "./tsconfig.json"
+	},
+	"rules": {
+		"simple-import-sort/imports": "error",
+		"simple-import-sort/exports": "error",
+		"no-return-await": "error",
+		"@typescript-eslint/no-misused-promises": "off"
+	},
+	"overrides": [
+		{
+			"files": ["*.ts"],
+			"rules": {
+				"@typescript-eslint/return-await": "off"
+			}
+		}
+	]
+}
