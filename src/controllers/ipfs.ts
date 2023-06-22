@@ -2,7 +2,7 @@ import { type NextFunction, type Request, type Response } from "express";
 
 import { prisma } from "../db/client";
 import { ipfsCore } from "../modules/IPFSCore";
-import { generateGatewayURL, getBase64Metadata, parseCID } from "../utils";
+import { cidArrayDifference, generateGatewayURL, getBase64Metadata, parseCID } from "../utils";
 
 async function uploadBase64(
 	request: Request,
@@ -50,10 +50,18 @@ async function pin(request: Request, response: Response, next: NextFunction): Pr
 		const cids = Array.isArray(ids) ? ids.map(parseCID) : [parseCID(ids)];
 		const pinned = await ipfsCore.pin(cids);
 
+		await prisma.content.updateMany({
+			where: {
+				cid: { in: pinned.map((cid) => cid.toString()) },
+			},
+			data: { pinned: true },
+		});
+
 		return response.send({
 			success: true,
 			data: {
 				pinned: pinned.map((cid) => cid.toString()),
+				rejected: cidArrayDifference(cids, pinned),
 			},
 		});
 	} catch (error) {
@@ -71,10 +79,18 @@ async function unpin(
 		const cids = Array.isArray(ids) ? ids.map(parseCID) : [parseCID(ids)];
 		const unpinned = await ipfsCore.unpin(cids);
 
+		await prisma.content.updateMany({
+			where: {
+				cid: { in: unpinned.map((cid) => cid.toString()) },
+			},
+			data: { pinned: false },
+		});
+
 		return response.send({
 			success: true,
 			data: {
 				unpinned: unpinned.map((cid) => cid.toString()),
+				rejected: cidArrayDifference(cids, unpinned).map((cid) => cid.toString()),
 			},
 		});
 	} catch (error) {
