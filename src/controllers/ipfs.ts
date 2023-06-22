@@ -15,11 +15,17 @@ async function uploadBase64(
 		const { buff, ...metadata } = getBase64Metadata(content);
 
 		const cid = await ipfsCore.add(buff);
-		await prisma.content.create({
-			data: {
+
+		// each cid should have only one record
+		await prisma.content.upsert({
+			create: {
 				cid: cid.toString(),
 				metadata,
 				pinned: pin,
+			},
+			update: {},
+			where: {
+				cid: cid.toString(),
 			},
 		});
 
