@@ -1,11 +1,10 @@
 import { type CID, create as createNode, type IPFSHTTPClient } from "kubo-rpc-client";
 
+import ERRORS from "../errors";
+
 export default class IPFSCore {
 	protected readonly loaded: Promise<boolean>;
 	private instance!: IPFSHTTPClient;
-
-	private readonly encoder = new TextEncoder();
-	private readonly decoder = new TextDecoder();
 
 	private loadedResolve: (value: boolean | PromiseLike<boolean>) => void = () => {};
 
@@ -19,18 +18,27 @@ export default class IPFSCore {
 		});
 	}
 
-	private init(): void {
-		if (this.instance === undefined) {
-			this.setupNode();
-			this.loadedResolve(true);
+	private validateEnvVariables(): void {
+		if (!process.env.IPFS_GATEWAY) {
+			throw new Error(ERRORS.IPFS_GATEWAY_NOT_CONFIGURED);
+		}
+
+		if (!process.env.IPFS_API) {
+			throw new Error(ERRORS.IPFS_API_NOT_CONFIGURED);
 		}
 	}
 
+	private init(): void {
+		if (this.instance) return;
+
+		this.validateEnvVariables();
+		this.setupNode();
+		this.loadedResolve(true);
+	}
+
 	private setupNode(): void {
-		const { IPFS_API } = process.env;
-		if ((IPFS_API ?? "") === "") {
-			throw new Error("Invalid API URL");
-		}
+		this.instance = createNode({ url: process.env.IPFS_API });
+	}
 
 		this.instance = createNode({ url: IPFS_API });
 	}

@@ -1,6 +1,8 @@
 import { MAXIMUM_FILE_SIZE, ONE_KB_IN_BYTES } from "../config";
 
 const ERRORS = {
+	IPFS_API_NOT_CONFIGURED: "IPFS_API not configured in .env",
+	IPFS_GATEWAY_NOT_CONFIGURED: "IPFS_GATEWAY not configured in .env",
 	UNAUTHORIZED: "Unauthorized",
 	INVALID_REQUEST: "Invalid request",
 	MISSING_FILE: "File is missing",
