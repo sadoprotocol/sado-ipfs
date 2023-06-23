@@ -43,11 +43,17 @@ export function isJSONString({ content, throwError }: StringCheckArgs): boolean 
 export function getJSONMetadata(content: string): MetadataAttributes {
 	const buff = Buffer.from(content);
 
-	return {
+	const metadata = {
 		buff,
 		byteSize: buff.byteLength,
 		mimetype: "application/json",
 	};
+
+	if (metadata.byteSize > MAXIMUM_FILE_SIZE) {
+		throw new Error(ERRORS.CONTENT_TOO_LARGE);
+	}
+
+	return metadata;
 }
 
 export function getBase64Metadata(content: string): MetadataAttributes {
@@ -59,19 +65,15 @@ export function getBase64Metadata(content: string): MetadataAttributes {
 		mimetype: fileData.substring(fileData.indexOf(":") + 1, fileData.lastIndexOf(";")),
 	};
 
-	validateBase64Content(metadata);
-
-	return metadata;
-}
-
-export function validateBase64Content(metadata: MetadataAttributes): void {
 	if (metadata.byteSize > MAXIMUM_FILE_SIZE) {
-		throw new Error(ERRORS.FILE_SIZE_OVER_LIMIT);
+		throw new Error(ERRORS.CONTENT_TOO_LARGE);
 	}
 
 	if (!ACCEPTED_MIME_TYPES.includes(metadata.mimetype)) {
 		throw new Error(ERRORS.UNSUPPORTED_FILE);
 	}
+
+	return metadata;
 }
 
 export function getContentMetadata(content: string): MetadataAttributes {
