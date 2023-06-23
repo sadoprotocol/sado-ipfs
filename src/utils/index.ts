@@ -1,8 +1,10 @@
+import fs from "node:fs/promises";
+
 import { CID } from "kubo-rpc-client";
 
 import { ACCEPTED_MIME_TYPES, MAXIMUM_FILE_SIZE } from "../config";
 import ERRORS from "../errors";
-import { type Base64MetadataAttributes, type MIME_TYPE } from "./types";
+import { type Base64MetadataAttributes } from "./types";
 
 export function parseCID(str: string): CID {
 	try {
@@ -22,7 +24,7 @@ export function getBase64Metadata(content: string): Base64MetadataAttributes {
 	const metadata = {
 		buff,
 		byteSize: buff.byteLength,
-		mimetype: fileData.substring(fileData.indexOf(":") + 1, fileData.lastIndexOf(";")) as MIME_TYPE,
+		mimetype: fileData.substring(fileData.indexOf(":") + 1, fileData.lastIndexOf(";")),
 	};
 
 	validateBase64Content(metadata);
@@ -49,4 +51,12 @@ export function cidArrayDifference(arrayOne: CID[], arrayTwo: CID[]): CID[] {
 	const diff = arrayOne.filter((v) => !arrayOfStringsTwo.includes(v.toString()));
 
 	return diff;
+}
+
+export async function deleteFile(path: string): Promise<void> {
+	try {
+		await fs.unlink(path);
+	} catch (error) {
+		console.log("Unable to delete file:", path);
+	}
 }

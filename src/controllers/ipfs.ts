@@ -1,8 +1,13 @@
+import fs from "node:fs/promises";
+
 import { type NextFunction, type Request, type Response } from "express";
 
+import { ACCEPTED_MIME_TYPES } from "../config";
 import { prisma } from "../db/client";
+import ERRORS from "../errors";
+import { saveContentData } from "../models/Content";
 import { ipfsCore } from "../modules/IPFSCore";
-import { cidArrayDifference, generateGatewayURL, getBase64Metadata, parseCID } from "../utils";
+import { cidArrayDifference, deleteFile, generateGatewayURL, getBase64Metadata, parseCID } from "../utils";
 
 async function uploadBase64(
 	request: Request,
@@ -17,18 +22,52 @@ async function uploadBase64(
 		const cid = await ipfsCore.add(buff, pin);
 		const pinned = await ipfsCore.isPinned(cid);
 
-		// each cid should have only one record
-		await prisma.content.upsert({
-			create: {
+		await saveContentData({ cid, pinned, metadata });
+
+		return response.send({
+			success: true,
+			data: {
 				cid: cid.toString(),
-				metadata,
-				pinned,
+				url: generateGatewayURL(cid),
 			},
-			update: {
-				pinned,
-			},
-			where: {
-				cid: cid.toString(),
+		});
+	} catch (error) {
+		next(error);
+	}
+}
+
+async function uploadFile(
+	request: Request,
+	response: Response,
+	next: NextFunction
+): Promise<Response | undefined> {
+	const file = request.file;
+
+	// TODO: move validation to route level and use JSON schema to validate
+	if (!file) {
+		next(new Error(ERRORS.MISSING_FILE));
+		return;
+	}
+
+	if (!ACCEPTED_MIME_TYPES.includes(file.mimetype)) {
+		next(new Error(ERRORS.UNSUPPORTED_FILE));
+		return;
+	}
+
+	try {
+		const pin = request.body.pin as boolean;
+		const content = await fs.readFile(file.path, { encoding: "base64" });
+		const buff = Buffer.from(content, "base64");
+
+		const cid = await ipfsCore.add(buff, pin);
+		const pinned = await ipfsCore.isPinned(cid);
+
+		await saveContentData({
+			cid,
+			pinned,
+			metadata: {
+				byteSize: file.size,
+				mimetype: file.mimetype,
 			},
 		});
 
@@ -41,6 +80,11 @@ async function uploadBase64(
 		});
 	} catch (error) {
 		next(error);
+	} finally {
+		// delete temporary file from OS
+		if (file?.path) {
+			await deleteFile(file?.path);
+		}
 	}
 }
 
@@ -98,4 +142,4 @@ async function unpin(
 	}
 }
 
-export { pin, unpin, uploadBase64 };
+export { pin, unpin, uploadBase64, uploadFile };
