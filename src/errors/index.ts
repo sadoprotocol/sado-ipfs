@@ -12,7 +12,8 @@ const ERRORS = {
 	INVALID_CID: "Invalid CID/content identifier",
 	TOO_MANY_REQUESTS: "Rate limit exceeded",
 	SERVER_ERROR: "Unable to process request. Try again later",
-	INVALID_BASE64_CONTENT: "Invalid base64 content. Ensure the string starts with: data:<mime-type>;base64,",
+	INVALID_BASE64: "Invalid base64 content. Ensure the string starts with: data:<mime-type>;base64,",
+	INVALID_JSON: "Invalid JSON string",
 };
 
 export default ERRORS;

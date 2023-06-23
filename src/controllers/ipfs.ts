@@ -7,9 +7,9 @@ import { prisma } from "../db/client";
 import ERRORS from "../errors";
 import { saveContentData } from "../models/Content";
 import { ipfsCore } from "../modules/IPFSCore";
-import { cidArrayDifference, deleteFile, generateGatewayURL, getBase64Metadata, parseCID } from "../utils";
+import { cidArrayDifference, deleteFile, generateGatewayURL, getContentMetadata, parseCID } from "../utils";
 
-async function uploadBase64(
+async function upload(
 	request: Request,
 	response: Response,
 	next: NextFunction
@@ -17,7 +17,7 @@ async function uploadBase64(
 	try {
 		const content = request.body.content as string;
 		const pin = request.body.pin as boolean;
-		const { buff, ...metadata } = getBase64Metadata(content);
+		const { buff, ...metadata } = getContentMetadata(content);
 
 		const cid = await ipfsCore.add(buff, pin);
 		const pinned = await ipfsCore.isPinned(cid);
@@ -142,4 +142,4 @@ async function unpin(
 	}
 }
 
-export { pin, unpin, uploadBase64, uploadFile };
+export { pin, unpin, upload, uploadFile };

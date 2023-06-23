@@ -4,7 +4,7 @@ import { CID } from "kubo-rpc-client";
 
 import { ACCEPTED_MIME_TYPES, MAXIMUM_FILE_SIZE } from "../config";
 import ERRORS from "../errors";
-import { type Base64MetadataAttributes } from "./types";
+import { type MetadataAttributes, type StringCheckArgs } from "./types";
 
 export function parseCID(str: string): CID {
 	try {
@@ -14,11 +14,43 @@ export function parseCID(str: string): CID {
 	}
 }
 
-export function getBase64Metadata(content: string): Base64MetadataAttributes {
+export function isBase64String({ content, throwError }: StringCheckArgs): boolean {
 	if (!content.startsWith("data:") || !content.includes("base64,")) {
-		throw new Error(ERRORS.INVALID_BASE64_CONTENT);
+		if (!throwError) {
+			return false;
+		}
+
+		throw new Error(ERRORS.INVALID_BASE64);
 	}
 
+	return true;
+}
+
+export function isJSONString({ content, throwError }: StringCheckArgs): boolean {
+	try {
+		JSON.parse(content);
+	} catch (error) {
+		if (!throwError) {
+			return false;
+		}
+
+		throw new Error(ERRORS.INVALID_JSON);
+	}
+
+	return true;
+}
+
+export function getJSONMetadata(content: string): MetadataAttributes {
+	const buff = Buffer.from(content);
+
+	return {
+		buff,
+		byteSize: buff.byteLength,
+		mimetype: "application/json",
+	};
+}
+
+export function getBase64Metadata(content: string): MetadataAttributes {
 	const [fileData, data] = content.split("base64,");
 	const buff = Buffer.from(data, "base64");
 	const metadata = {
@@ -32,7 +64,7 @@ export function getBase64Metadata(content: string): Base64MetadataAttributes {
 	return metadata;
 }
 
-export function validateBase64Content(metadata: Base64MetadataAttributes): void {
+export function validateBase64Content(metadata: MetadataAttributes): void {
 	if (metadata.byteSize > MAXIMUM_FILE_SIZE) {
 		throw new Error(ERRORS.FILE_SIZE_OVER_LIMIT);
 	}
@@ -40,6 +72,18 @@ export function validateBase64Content(metadata: Base64MetadataAttributes): void 
 	if (!ACCEPTED_MIME_TYPES.includes(metadata.mimetype)) {
 		throw new Error(ERRORS.UNSUPPORTED_FILE);
 	}
+}
+
+export function getContentMetadata(content: string): MetadataAttributes {
+	if (isBase64String({ content })) {
+		return getBase64Metadata(content);
+	}
+
+	if (isJSONString({ content })) {
+		return getJSONMetadata(content);
+	}
+
+	throw new Error(ERRORS.INVALID_REQUEST);
 }
 
 export function generateGatewayURL(cid: CID | string): string {
