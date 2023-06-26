@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+
+      - name: Clean Existing
+        uses: appleboy/ssh-action@334f9259f2f8eb3376d33fa4c684fff373f2c2a6 # v0.1.10
+        with:
+          key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.EC2_SSH_HOST }}
+          username: ${{ secrets.EC2_SSH_USER }}
+          script: |
+            cd ~/sado-ipfs
+            rm -rf ./src ./dist
+
+      - name: Deploy Updates
+        uses: easingthemes/ssh-deploy@3884c8554ff45c0fd37d3f12a76288d06ce7a2ff # v4.1.8
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.EC2_SSH_HOST }}
+          REMOTE_USER: ${{ secrets.EC2_SSH_USER }}
+          TARGET: "/home/ubuntu/sado-ipfs"
+          EXCLUDE: "/.github/,/.vscode/,/.git/"
+
+      - name: Build & Reload
+        uses: appleboy/ssh-action@334f9259f2f8eb3376d33fa4c684fff373f2c2a6 # v0.1.10
+        with:
+          key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.EC2_SSH_HOST }}
+          username: ${{ secrets.EC2_SSH_USER }}
+          script: |
+            PATH=$PATH:/home/ubuntu/.nvm/versions/node/v18.16.0/bin
+            cd ~/sado-ipfs
+            npm i
+            npm run build
+            pm2 reload ipfs
+
+      - name: Notify
+        id: slack
+        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        with:
+          payload: |
+            {
+              "text": "Sado IPFS Released: ${{ github.event.release.name }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Sado IPFS Released\nRelease Version: ${{ github.event.release.name }}\nRelease Notes: https://github.com/sadoprotocol/sado-ipfs/releases/tag/${{ github.event.release.tag_name }}"
+                  }
+                }
+              ]
+            }
