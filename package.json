@@ -3,9 +3,6 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
-	"prisma": {
-		"schema": "src/db/schema.prisma"
-	},
 	"scripts": {
 		"build": "rimraf ./dist && tsc",
 		"build:dev": "tsc --noEmit --strict --pretty",
@@ -15,11 +12,11 @@
 		"lint:fix": "eslint . --ext .ts --fix"
 	},
 	"dependencies": {
-		"@prisma/client": "^4.15.0",
 		"dotenv": "^16.0.3",
 		"express": "~4.16.1",
 		"helmet": "^4.4.1",
 		"kubo-rpc-client": "^3.0.1",
+		"mongoose": "^7.3.1",
 		"multer": "^1.4.5-lts.1"
 	},
 	"devDependencies": {
@@ -36,7 +33,6 @@
 		"eslint-plugin-promise": "^6.1.1",
 		"eslint-plugin-simple-import-sort": "^10.0.0",
 		"prettier": "^2.8.8",
-		"prisma": "^4.15.0",
 		"rimraf": "^5.0.1",
 		"tsx": "^3.12.7",
 		"typescript": "5.0.4"

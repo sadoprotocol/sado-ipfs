@@ -1,6 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import mongoose from "mongoose";
 
-const prisma = new PrismaClient();
-await prisma.$connect();
+if (!process.env.DATABASE_URL) {
+	throw new Error("DATABASE_URL in .env is missing");
+}
 
-export { prisma };
+const connection = await mongoose.connect(process.env.DATABASE_URL);
+
+export { connection };

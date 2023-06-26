@@ -1,6 +1,23 @@
 import { type CID } from "kubo-rpc-client";
+import { Schema } from "mongoose";
 
-import { prisma } from "../db/client";
+import { connection } from "../db/client";
+
+const ContentSchema = new Schema(
+	{
+		cid: {
+			type: "string",
+			unique: true,
+		},
+		pinned: Boolean,
+		metadata: Object,
+	},
+	{
+		timestamps: true,
+	}
+);
+
+const ContentModel = connection.model("Content", ContentSchema, "content");
 
 interface SaveDataArgs {
 	cid: CID;
@@ -13,19 +30,11 @@ interface SaveDataArgs {
 
 async function saveContentData({ cid, pinned, metadata }: SaveDataArgs): Promise<void> {
 	// each cid should have only one record
-	await prisma.content.upsert({
-		create: {
-			cid: cid.toString(),
-			metadata,
-			pinned,
-		},
-		update: {
-			pinned,
-		},
-		where: {
-			cid: cid.toString(),
-		},
-	});
+	await ContentModel.findOneAndUpdate(
+		{ cid: cid.toString() },
+		{ $set: { cid: cid.toString(), metadata, pinned } },
+		{ upsert: true }
+	);
 }
 
-export { saveContentData };
+export { ContentModel, saveContentData };

@@ -3,9 +3,8 @@ import fs from "node:fs/promises";
 import { type NextFunction, type Request, type Response } from "express";
 
 import { ACCEPTED_MIME_TYPES } from "../config";
-import { prisma } from "../db/client";
 import ERRORS from "../errors";
-import { saveContentData } from "../models/Content";
+import { ContentModel, saveContentData } from "../models/Content";
 import { ipfsCore } from "../modules/IPFSCore";
 import { cidArrayDifference, deleteFile, generateGatewayURL, getContentMetadata, parseCID } from "../utils";
 
@@ -94,12 +93,10 @@ async function pin(request: Request, response: Response, next: NextFunction): Pr
 		const cids = Array.isArray(ids) ? ids.map(parseCID) : [parseCID(ids)];
 		const pinned = await ipfsCore.pin(cids);
 
-		await prisma.content.updateMany({
-			where: {
-				cid: { in: pinned.map((cid) => cid.toString()) },
-			},
-			data: { pinned: true },
-		});
+		await ContentModel.updateMany(
+			{ cid: { $in: pinned.map((cid) => cid.toString()) } },
+			{ $set: { pinned: true } }
+		);
 
 		return response.send({
 			success: true,
@@ -123,12 +120,10 @@ async function unpin(
 		const cids = Array.isArray(ids) ? ids.map(parseCID) : [parseCID(ids)];
 		const unpinned = await ipfsCore.unpin(cids);
 
-		await prisma.content.updateMany({
-			where: {
-				cid: { in: unpinned.map((cid) => cid.toString()) },
-			},
-			data: { pinned: false },
-		});
+		await ContentModel.updateMany(
+			{ cid: { $in: unpinned.map((cid) => cid.toString()) } },
+			{ $set: { pinned: false } }
+		);
 
 		return response.send({
 			success: true,
