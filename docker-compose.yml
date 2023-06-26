@@ -1,8 +1,15 @@
 version: "3.8"
 services:
+  database:
+    image: mongo:latest
+    container_name: sado-ipfs-database
+    ports:
+      - 27017:27017
+    volumes:
+      - ./.bin/data/mongodb:/data/db
   ipfs:
     image: ipfs/kubo
-    container_name: ipfs-api
+    container_name: sado-ipfs-daemon
     restart: unless-stopped
     volumes:
       - ./.bin/data/ipfs:/data/ipfs
