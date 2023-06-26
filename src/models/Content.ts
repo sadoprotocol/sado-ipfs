@@ -1,7 +1,5 @@
 import { type CID } from "kubo-rpc-client";
-import { Schema } from "mongoose";
-
-import { connection } from "../db/client";
+import mongoose, { Schema } from "mongoose";
 
 const ContentSchema = new Schema(
 	{
@@ -17,7 +15,7 @@ const ContentSchema = new Schema(
 	}
 );
 
-const ContentModel = connection.model("Content", ContentSchema, "content");
+const ContentModel = mongoose.model("Content", ContentSchema, "content");
 
 interface SaveDataArgs {
 	cid: CID;
