@@ -10,4 +10,4 @@ router.post("/upload-file", singleFileRequestHandler("content"), uploadFile);
 router.put("/pin", pin);
 router.put("/unpin", unpin);
 
-export default { basePath: "/ipfs", router };
+export default { basePath: "/", router };
