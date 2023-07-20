@@ -1,10 +1,11 @@
 import { type NextFunction, type Request, type Response, Router } from "express";
 
 import ERRORS from "../errors";
+import BaseRouter from './base'
 import IPFSRouter from "./ipfs";
 
 const applicationRouter = Router();
-const routers = [IPFSRouter];
+const routers = [IPFSRouter, BaseRouter];
 
 // Dynamically bind routers to the main application router
 routers.forEach((router) => {
