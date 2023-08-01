@@ -1,6 +1,6 @@
 const TEMP_DIRECTORY = "/tmp/uploads";
 const ONE_KB_IN_BYTES = 1024;
-const MAXIMUM_FILE_SIZE = ONE_KB_IN_BYTES * 380; // 380Kb
+const MAXIMUM_FILE_SIZE = ONE_KB_IN_BYTES * 5000; // 5000Kb / 5Mb
 const MAXIMUM_JSON_PAYLOAD_SIZE = MAXIMUM_FILE_SIZE + 20; // Added 20Kb as buffer -- i know its a lot
 const ACCEPTED_MIME_TYPES = [
 	"application/json",
