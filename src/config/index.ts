@@ -7,6 +7,7 @@ const ACCEPTED_MIME_TYPES = [
 	"application/pdf",
 	"text/csv",
 	"text/plain",
+	"text/html",
 	"image/jpeg",
 	"image/bmp",
 	"image/gif",
