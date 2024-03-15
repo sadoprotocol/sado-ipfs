@@ -17,7 +17,8 @@
 		"helmet": "^4.4.1",
 		"kubo-rpc-client": "^3.0.1",
 		"mongoose": "^7.3.1",
-		"multer": "^1.4.5-lts.1"
+		"multer": "^1.4.5-lts.1",
+		"node-fetch": "^3.3.2"
 	},
 	"devDependencies": {
 		"@types/express": "^4.17.17",
