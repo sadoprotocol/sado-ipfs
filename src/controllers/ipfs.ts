@@ -4,9 +4,11 @@ import { type NextFunction, type Request, type Response } from "express";
 
 import { ACCEPTED_MIME_TYPES } from "../config";
 import ERRORS from "../errors";
-import { ContentModel, saveContentData } from "../models/Content";
+import { ContentModel, saveContentData, getContentData } from "../models/Content";
 import { ipfsCore } from "../modules/IPFSCore";
 import { cidArrayDifference, deleteFile, generateGatewayURL, getContentMetadata, parseCID } from "../utils";
+
+import fetch from 'node-fetch';
 
 async function upload(
 	request: Request,
@@ -137,4 +139,57 @@ async function unpin(
 	}
 }
 
-export { pin, unpin, upload, uploadFile };
+/**
+ *
+ * @param request
+ * @param response
+ * @param next
+ *
+ * This function is responsible for serving the content from the IPFS gateway and overriding the content type
+ */
+async function serve(request: Request, response: Response, next: NextFunction) {
+	try {
+		const cid = parseCID(request.params.cid);
+
+		const gatewayURL = generateGatewayURL(cid);
+		const asset =  await fetch(new URL(gatewayURL) )
+
+		//  check stored mimetype of the asset and override the contentType that is return
+		const storedContent = await getContentData(cid);
+
+		if(storedContent && storedContent.metadata && storedContent.metadata.mimetype){
+			response.setHeader('Content-Type', storedContent.metadata.mimetype.toString())
+		}
+
+		if (asset.body) {
+			// pipe readable stream directly to the response
+			asset.body.pipe(response);
+		} else {
+			throw new Error('Response body is null');
+		}
+
+	} catch (error) {
+		next(error);
+	}
+}
+
+/**
+ *
+ * @param request
+ * @param response
+ * @param next
+ *
+ * This function is responsible for redirecting the request to the recursive endpoint
+ */
+async function getRecursivePreview(request: Request, response: Response, next: NextFunction) {
+	try {
+		const inscriptionUrl = `${process.env.RECURSIVE_ENDPOINT as string}${request.path}`
+		return response.redirect(inscriptionUrl)
+
+	} catch (error) {
+		next(error);
+	}
+
+}
+
+export { pin, unpin, upload, uploadFile, serve, getRecursivePreview };
