@@ -27,7 +27,7 @@ const corsOptions = {
 	},
 	optionsSuccessStatus: 200 // For legacy browsers
 };
-
+applicationRouter.use(cors(corsOptions));
 app.use(cors(corsOptions));
 app.use(applicationRouter);
 mongoose.connection.on("open", () => {
