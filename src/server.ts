@@ -11,8 +11,6 @@ import applicationRouter from "./routes";
 const app = express();
 
 app.use(express.json({ limit: MAXIMUM_JSON_PAYLOAD_SIZE }));
-app.use(applicationRouter);
-
 const allowedDomains = process.env.ALLOWED_DOMAINS ? process.env.ALLOWED_DOMAINS.split(',') : [];
 
 // CORS options
@@ -31,7 +29,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
+app.use(applicationRouter);
 mongoose.connection.on("open", () => {
 	app.listen(process.env.PORT, () => {
 		console.log(
