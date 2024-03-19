@@ -154,13 +154,16 @@ async function serve(request: Request, response: Response, next: NextFunction) {
 		const gatewayURL = generateGatewayURL(cid);
 		const asset =  await fetch(new URL(gatewayURL) )
 
+		const assetHeaders = {...asset.headers.raw()}
+
 		//  check stored mimetype of the asset and override the contentType that is return
 		const storedContent = await getContentData(cid);
 
 		if(storedContent && storedContent.metadata && storedContent.metadata.mimetype){
-			response.setHeader('Content-Type', storedContent.metadata.mimetype.toString())
+			assetHeaders['content-type'] = [storedContent.metadata.mimetype.toString()]
 		}
 
+		response.writeHead(asset.status, asset.statusText, assetHeaders);
 		if (asset.body) {
 			// pipe readable stream directly to the response
 			asset.body.pipe(response);
