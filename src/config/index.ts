@@ -27,6 +27,8 @@ const ACCEPTED_MIME_TYPES = [
 	"video/mpeg",
 	"video/ogg",
 	"video/webm",
+	"model/gltf+json",
+	"model/gltf-binary"
 ];
 
 export { ACCEPTED_MIME_TYPES, MAXIMUM_FILE_SIZE, MAXIMUM_JSON_PAYLOAD_SIZE, ONE_KB_IN_BYTES, TEMP_DIRECTORY };
