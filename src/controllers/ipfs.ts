@@ -152,7 +152,7 @@ async function serve(request: Request, response: Response, next: NextFunction) {
 		const cid = parseCID(request.params.cid);
 
 		const gatewayURL = generateGatewayURL(cid);
-		const asset =  await fetch(new URL(gatewayURL) )
+		const asset =  await fetch(new URL(gatewayURL) , { compress: false })
 
 		const assetHeaders = {...asset.headers.raw()}
 
