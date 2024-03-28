@@ -13,10 +13,10 @@
 	},
 	"dependencies": {
 		"dotenv": "^16.0.3",
-		"express": "~4.16.1",
+		"express": "~4.19.2",
 		"helmet": "^4.4.1",
 		"kubo-rpc-client": "^3.0.1",
-		"mongoose": "^7.3.1",
+		"mongoose": "^8.2.3",
 		"multer": "^1.4.5-lts.1",
 		"node-fetch": "^3.3.2"
 	},
@@ -36,6 +36,6 @@
 		"prettier": "^2.8.8",
 		"rimraf": "^5.0.1",
 		"tsx": "^3.12.7",
-		"typescript": "5.0.4"
+		"typescript": "5.4.3"
 	}
 }
