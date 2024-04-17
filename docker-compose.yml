@@ -1,4 +1,10 @@
 version: "3.8"
+
+networks:
+  internal:
+    name: internal
+    external: false
+
 services:
   database:
     image: mongo:latest
@@ -44,7 +50,6 @@ services:
       - api
     networks:
       - internal
-      - web
     ports:
       - ${PORT}:${PORT}
     command: /bin/bash -c "envsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
@@ -55,6 +60,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    networks:
+      - internal
     deploy:
       replicas: ${API_REPLICAS}
     command: npm start
