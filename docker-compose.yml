@@ -24,6 +24,8 @@ services:
       - ./.bin/ipns:/ipns
     environment:
       - IPFS_PATH=/data/ipfs
+    networks:
+      - internal
     ports:
       # Swarm listens on all interfaces, so is remotely reachable.
       - 4001:4001/tcp
