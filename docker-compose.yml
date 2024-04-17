@@ -1,4 +1,10 @@
 version: "3.8"
+
+networks:
+  internal:
+    name: internal
+    external: false
+
 services:
   database:
     image: mongo:latest
@@ -7,6 +13,7 @@ services:
       - 27017:27017
     volumes:
       - ./.bin/data/mongodb:/data/db
+  
   ipfs:
     image: ipfs/kubo
     container_name: sado-ipfs-daemon
@@ -17,6 +24,8 @@ services:
       - ./.bin/ipns:/ipns
     environment:
       - IPFS_PATH=/data/ipfs
+    networks:
+      - internal
     ports:
       # Swarm listens on all interfaces, so is remotely reachable.
       - 4001:4001/tcp
@@ -30,3 +39,31 @@ services:
 
       # HTTP Gateway
       - 8080:8080
+
+  nginx:
+    image: nginx:latest
+    profiles: ["api"]
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/nginx.conf.template
+    depends_on:
+      - api
+    networks:
+      - internal
+    ports:
+      - ${PORT}:${PORT}
+    command: /bin/bash -c "envsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+
+  api:
+    build: .
+    profiles: ["api"]
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - internal
+    deploy:
+      replicas: ${API_REPLICAS}
+    command: npm start
