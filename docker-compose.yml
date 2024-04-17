@@ -7,6 +7,7 @@ services:
       - 27017:27017
     volumes:
       - ./.bin/data/mongodb:/data/db
+  
   ipfs:
     image: ipfs/kubo
     container_name: sado-ipfs-daemon
@@ -30,3 +31,30 @@ services:
 
       # HTTP Gateway
       - 8080:8080
+
+  nginx:
+    image: nginx:latest
+    profiles: ["api"]
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/nginx.conf.template
+    depends_on:
+      - api
+    networks:
+      - internal
+      - web
+    ports:
+      - ${PORT}:${PORT}
+    command: /bin/bash -c "envsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+
+  api:
+    build: .
+    profiles: ["api"]
+    restart: unless-stopped
+    env_file:
+      - .env
+    deploy:
+      replicas: ${API_REPLICAS}
+    command: npm start
